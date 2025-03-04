@@ -48,20 +48,15 @@ def rag(dataset, index, query: str, k: int =5) -> List[str]:
     return sorted_documents[:k]
 
 
-def music_chat(model_name, dataset, index, user_prompt='', chat=True):
-    system_prompt = ''
-
-    with open('SYSPROMPT.txt', 'r') as f:
-        for line in f:
-            system_prompt += line
+def music_chat(model_name, dataset, index, system_prompt, user_prompt='', chat=True):
 
     model = GenerativeModel(
         model_name=model_name,
     ) 
 
-    user_prompt = input('Enter your music preferences to get a music recommendation: (q to quit)\n> ')
-
     if chat:
+        user_prompt = input('Enter your music preferences to get a music recommendation: (q to quit)\n> ')
+
         chat = model.start_chat(
             history=[
                 Content(parts=[Part.from_text(system_prompt)], role='user')
@@ -83,7 +78,7 @@ def music_chat(model_name, dataset, index, user_prompt='', chat=True):
 
         prompt = format_prompt(user_prompt, documents)
             
-        response = model.predict(
+        response = model.generate_content(
             prompt,
         )
 
@@ -92,14 +87,19 @@ def music_chat(model_name, dataset, index, user_prompt='', chat=True):
 
 
 def main():
+
+    system_prompt = ''
+
+    with open('SYSPROMPT2.txt', 'r') as f:
+        for line in f:
+            system_prompt += line
+
     model_name = 'gemini-2.0-flash'
-    max_output_tokens = 256
-    temp = 0.2
 
-    dataset = datasets.load_from_disk('bandcamp_data_embeddings')
-    index = faiss.read_index('faiss_index.index')
+    dataset = datasets.load_from_disk('bandcamp_data_ml_embeddings')
+    index = faiss.read_index('faiss_ml_index.index')
 
-    music_chat(model_name, dataset, index)
+    music_chat(model_name, dataset, index, system_prompt)
 
 
 if __name__ == '__main__':

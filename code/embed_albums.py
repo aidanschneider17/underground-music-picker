@@ -8,8 +8,8 @@ from vertexai.language_models import TextEmbeddingModel
 import faiss
 
 
-PROJECT_ID = ''
-REGION = ''
+PROJECT_ID = 'ug-music'
+REGION = 'us-central1'
 MODEL_ID = 'textembedding-gecko@003'
 
 vertexai.init(project=PROJECT_ID, location=REGION)
@@ -51,7 +51,7 @@ def embed(batch):
     return {'embeddings': embeddings}
 
 
-def faiss_index(dataset: str):
+def faiss_index(dataset: str, index_path: str = 'faiss_index.index'):
     """
     Generates faiss indexes on the given dataset.
     Args:
@@ -63,7 +63,16 @@ def faiss_index(dataset: str):
     index = faiss.IndexFlatL2(embeddings_array.shape[1])
     index.add(embeddings_array)
 
-    faiss.write_index(index, 'faiss_index.index')
+    faiss.write_index(index, index_path)
+
+    
+def get_model_id():
+    return MODEL_ID
+
+    
+def set_model_id(model_id: str):
+    global MODEL_ID
+    MODEL_ID = model_id
     
 
 if __name__ == '__main__':
