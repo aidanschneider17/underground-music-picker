@@ -1,3 +1,5 @@
+#!/home/soot/anaconda3/envs/ug-music/bin/python3
+
 from typing import List
 import vertexai
 from vertexai.preview.generative_models import GenerativeModel, Content, Part
@@ -30,7 +32,7 @@ def main():
         model_name=model_name,
     ) 
 
-    user_prompt = input('Enter your music preferences to get a music recommendation: (q to quit)\n')
+    user_prompt = input('Enter your music preferences to get a music recommendation: (q to quit)\n> ')
 
     chat = model.start_chat(
         history=[
@@ -48,7 +50,7 @@ def main():
             
         response = chat.send_message(prompt)
         print(response.text)
-        user_prompt = input()
+        user_prompt = input('\n> ')
 
 if __name__ == '__main__':
     try:
