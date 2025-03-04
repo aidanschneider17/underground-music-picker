@@ -15,6 +15,10 @@ import subprocess
 load_dotenv()
 
 class BandCampScraper:
+    """
+    A scraper that gets album data from bandcamp.com
+    """
+
     def __init__(self):
         self.base_url = 'https://bandcamp.com'
         self.headers = {
@@ -27,11 +31,27 @@ class BandCampScraper:
         self.robot_parser.set_url(f'{self.base_url}/robots.txt')
         self.robot_parser.read()
 
-    def can_fetch(self, url):
+    def can_fetch(self, url: str) -> bool:
+        """
+        Determines if the url can be scraped according to robots.txt
+        Args:
+            url (str): The url to check
+
+        Returns:
+            bool: True if the url can be scraped, False otherwise
+        """        
         return self.robot_parser.can_fetch(self.headers['User-Agent'], url)
 
-    def get_album_data(self, album_url):
-        """Scrape individual artist page"""
+    def get_album_data(self, album_url: str) -> dict:
+        """
+        Scrapes the album data from the given url
+        Args:
+            album_url (str): The album url
+
+        Returns:
+            dict: The album data
+        """        
+
         if not self.can_fetch(album_url):
             print(f'Cannot scrape {album_url} per robots.txt')
             return None
@@ -61,8 +81,14 @@ class BandCampScraper:
             print(f'Error scraping {album_url}: {str(e)}')
             return None
 
-    def get_all_genres(self):
-        """Scrape all available genre tags from Bandcamp"""
+    def get_all_genres(self) -> list:
+        """
+        Gets all the genres from bandcamp.com
+
+        Returns:
+            list: The list of genres
+        """        
+        
         discover_url = f'{self.base_url}/discover'
 
         headers = {
@@ -86,7 +112,17 @@ class BandCampScraper:
             print(f'Error fetching tags: {str(e)}')
             return []
 
-    def get_albums_by_genre(self, genre):
+    def get_albums_by_genre(self, genre: str) -> list:
+        """
+        Gets the top 100 albums from the given genre
+
+        Args:
+            genre (str): The genre to search for
+
+        Returns:
+            list: The list of album urls
+        """        
+        
         albums = []
         
         url = f'https://bandcamp.com/api/discover/1/discover_mobile_web'
@@ -112,8 +148,18 @@ class BandCampScraper:
 
         return albums
 
-    def get_similar_albums(self, album_url, depth=1):
-        """Find 'Fans Also Like' recommendations"""
+    def get_similar_albums(self, album_url: str, depth: int =1) -> list:
+        """
+        Gets the similar albums to the given album
+
+        Args:
+            album_url (str): The album url
+            depth (int, optional): How deep to make the search tree. Defaults to 1.
+
+        Returns:
+            list: The list of album urls
+        """        
+        
         albums = []
         try:
             response = requests.get(album_url, headers=self.headers)
@@ -200,7 +246,18 @@ class BandCampScraper:
         return reviews
 
 
-def automated_discovery(scraper, depth=2):
+def automated_discovery(scraper: BandCampScraper, depth: int =2) -> list:
+    """
+    Finds albums automatically through the list of generes on the site.
+    
+    Args:
+        scraper (BandCampScraper): The scraper object
+        depth (int, optional): Similar search tree depth. Defaults to 2.
+
+    Returns:
+        list: All the album urls
+    """    
+    
     all_genres = scraper.get_all_genres()
     visited_genres = []
     album_urls = set()

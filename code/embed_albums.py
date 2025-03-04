@@ -1,5 +1,3 @@
-#!/home/soot/anaconda3/envs/ug-music/bin/python3
-
 from datasets import load_dataset, load_from_disk
 import pandas as pd
 import numpy as np
@@ -10,14 +8,22 @@ from vertexai.language_models import TextEmbeddingModel
 import faiss
 
 
-PROJECT_ID = 'ug-music-app'
-REGION = 'us-central1'
+PROJECT_ID = ''
+REGION = ''
 MODEL_ID = 'textembedding-gecko@003'
 
 vertexai.init(project=PROJECT_ID, location=REGION)
 
 
 def get_text_embeddings(texts: List[str]):
+    """
+    Turns a list of strings into their embedded format.
+    Args:
+        texts (List[str]): The list of strings
+
+    Returns:
+        list(list(float)): The text embeddings
+    """    
 
     model = TextEmbeddingModel.from_pretrained(MODEL_ID)
 
@@ -46,6 +52,11 @@ def embed(batch):
 
 
 def faiss_index(dataset: str):
+    """
+    Generates faiss indexes on the given dataset.
+    Args:
+        dataset (str): The path to the local dataset
+    """    
     dataset = load_from_disk('bandcamp_data_embeddings')
     embeddings_array = np.array(dataset['train']['embeddings'])
     print('Indexing Embeddings')
