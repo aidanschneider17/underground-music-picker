@@ -1,21 +1,30 @@
-#!/home/schneideral/AI-Search/underground-music-picker/ug-music/bin/python3
+#!/home/soot/anaconda3/envs/ug-music/bin/python3
 
-#SBATCH --job-name="Song Scraping"
-#SBATCH --output=job_%j.out
-#SBATCH --mail-type=ALL
-#SBATCH --mail-user=schneideral@msoe.edu
-#SBATCH --partition=teaching
-#SBATCH --gres=gpu:t4:1
-#SBATCH --nodes=1
-#SBATCH --cpus-per-gpu=2
-
-## SCRIPT START
-
-from datasets import load_dataset
-from sentence_transformers import SentenceTransformer
+from datasets import load_dataset, load_from_disk
 import pandas as pd
+import numpy as np
+import os
+from typing import List
+import vertexai
+from vertexai.language_models import TextEmbeddingModel
+import faiss
 
-ST = SentenceTransformer("mixedbread-ai/mxbai-embed-large-v1", device="cuda")
+
+PROJECT_ID = 'ug-music-app'
+REGION = 'us-central1'
+MODEL_ID = 'textembedding-gecko@003'
+
+vertexai.init(project=PROJECT_ID, location=REGION)
+
+
+def get_text_embeddings(texts: List[str]):
+
+    model = TextEmbeddingModel.from_pretrained(MODEL_ID)
+
+    embeddings = model.get_embeddings(texts)
+
+    return [embedding.values for embedding in embeddings]
+
 
 def embed(batch):
     """
@@ -27,11 +36,30 @@ def embed(batch):
     tracks = batch['tracks']
     tags = batch['tags']
     reviews = batch['reviews']
-    information = [f"{title} {tracks} {tags} {reviews}" for text in information]
-    return {"embeddings" : ST.encode(information)}
+    artist = batch['artist']
+
+    information = [f"{t} {a} {tr} {ta} {r}" for t, a, tr, ta, r in zip(title, artist, tracks, tags, reviews)]
+
+    embeddings = get_text_embeddings(information)
+
+    return {'embeddings': embeddings}
+
+
+def faiss_index(dataset: str):
+    dataset = load_from_disk('bandcamp_data_embeddings')
+    embeddings_array = np.array(dataset['train']['embeddings'])
+    print('Indexing Embeddings')
+    index = faiss.IndexFlatL2(embeddings_array.shape[1])
+    index.add(embeddings_array)
+
+    faiss.write_index(index, 'faiss_index.index')
+    
 
 if __name__ == '__main__':
-    dataset = load_dataset('csv', data_files='./bandcamp_data.csv')
+    if os.path.exists('./bandcamp_data_embeddings'):
+        faiss_index('./bandcamp_data_embeddings')
+    else:
+        dataset = load_dataset('csv', data_files='./bandcamp_data.csv')
 
-    dataset = dataset.map(embed, batched=True, batch_size=16)
-    dataset.save_to_disk('bandcamp_data_embeddings')
+        dataset = dataset.map(embed, batched=True, batch_size=16)
+        dataset.save_to_disk('bandcamp_data_embeddings')
