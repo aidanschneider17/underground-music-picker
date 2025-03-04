@@ -1,5 +1,3 @@
-#!/home/soot/anaconda3/envs/ug-music/bin/python3
-
 from embed_albums import get_text_embeddings
 import numpy as np
 

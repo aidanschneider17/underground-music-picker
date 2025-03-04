@@ -1,5 +1,3 @@
-#!/home/soot/anaconda3/envs/ug-music/bin/python3
-
 from typing import List
 import vertexai
 from vertexai.preview.generative_models import GenerativeModel, Content, Part
