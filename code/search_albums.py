@@ -2,13 +2,13 @@ from embed_albums import get_text_embeddings
 import numpy as np
 
 
-def search_albums(query: str, index, k: int = 5) -> tuple:
+def search_albums(query: str, index, k: int) -> tuple:
     """
     Searches the album dataset for the nearest albums to the query.
     Args:
         query (str): The user query
         index: The faiss index object
-        k (int, optional): The number of nearest neighbors to return. Defaults to 5.
+        k (int): The number of nearest neighbors to return. Defaults to 5.
 
     Returns:
         tuple: The distances and indices of the nearest albums.
@@ -16,7 +16,7 @@ def search_albums(query: str, index, k: int = 5) -> tuple:
 
     embedded_query = get_text_embeddings([query])[0]
     query_vector = np.array(embedded_query, dtype=np.float32).reshape(1, -1)
-    distances, indices = index.search(query_vector, k)
+    distances, indices = index.search(query_vector, k*3)
 
     return distances, indices
 
